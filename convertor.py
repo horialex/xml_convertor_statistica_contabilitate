@@ -1,14 +1,14 @@
 import pandas as pd
 import datetime
 import xml.etree.ElementTree as ET
-from check_code import format_no_decimals, get_nomenclator, get_su, map_country, save_incorrect_codes
+from check_code import first_non_ro, format_no_decimals, get_nomenclator, get_su, map_country, save_incorrect_codes
 
 # luna pt care extragem datele
-luna = 'decembrie'
+luna = 'iulie'
 
 # Date statice
-month = "12"
-year = "2025" 
+month = "07"
+year = "2026" 
 ref_period = f"{year}-{month}"
 nr_tva=  "0022064919"
 nume_firma = "SC UNITED TIM SRL"
@@ -33,6 +33,7 @@ nomenclator_path = "ins/nomenclator.xls"
 df = pd.read_excel(f"date/{luna}.xlsx", header=1, dtype=str)
 df_nomenclator = get_nomenclator(nomenclator_path)
 
+print(len(df))
 # Drop fully empty rows (like your first row)
 df = df.dropna(how="all")
 df = df.reset_index(drop=True)
@@ -46,6 +47,7 @@ df.columns = [
     "tara_origine_produs",
     "tara_expediere"
 ]
+
 
 # df = df.fillna("")
 # df = df.iloc[:-1].reset_index(drop=True) // Sterge ultimul rand
@@ -75,7 +77,7 @@ df_agg = df.groupby("cod_nc8", as_index=False).agg({
     "furnizor": "first",
     "denumire_produs_romana": lambda x: ", ".join(sorted(set(map(str, x)))),
     "tara_origine_produs": "first",
-    "tara_expediere": "first",
+    "tara_expediere": first_non_ro,
     "valoare_factura_fara_tva_fara_voucher": "sum",
     "cantitate": "sum",
     "masa_neta_kg": "sum"
@@ -168,7 +170,8 @@ tree = ET.ElementTree(root)
 tree.write(f"xml_result/intrastat_{luna}.xml", encoding="utf-8", xml_declaration=True)
 
 total_cantitate = df_agg["cantitate"].sum()
-print(total_cantitate)
+#print(total_cantitate)
+
 
 # row = pd.read_excel(f"date/{luna}.xlsx", header=1, dtype=str)
 # row = row.iloc[:-1].reset_index(drop=True)
@@ -201,3 +204,4 @@ print(total_cantitate)
 # print(raw.head())
 
 # # print(df.loc[df["cod_nc8"].astype(str).str.contains("21069092", na=False), "cod_nc8"])
+

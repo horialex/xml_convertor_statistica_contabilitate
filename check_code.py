@@ -53,3 +53,8 @@ def map_country(value):
     if pd.isna(value) or value == "":
         return ""
     return country_map.get(value, value)  
+
+def first_non_ro(x):
+    s = x.dropna().astype(str)
+    non_ro = s[s.str.lower() != "ro"]
+    return non_ro.iloc[0] if not non_ro.empty else s.iloc[0] if not s.empty else None
